@@ -1,17 +1,33 @@
-version: '3.7'
+version: "3.9"
 
 services:
+  fhirdb:
+    image: postgres:14            # stay on PG15 until HAPI 8 supports 16
+    container_name: fhir_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: hapifhir
+      POSTGRES_USER: fhiradmin
+      POSTGRES_PASSWORD: fhiradmin
+    ports: ["5430:5432"]
+    volumes: [fhir_pgdata2:/var/lib/postgresql/data]
+
   fhir:
+    image: hapiproject/hapi:v7.6.0
     container_name: fhir
-    image: "hapiproject/hapi:latest"
     ports:
       - "8086:8080"
-  db:
-    image: 'postgres:14.10'
-    container_name: 'fhir_db'
     environment:
-      - 'POSTGRES_DB=hapifhir'
-      - 'POSTGRES_PASSWORD=fhiradmin'
-      - 'POSTGRES_USER=fhiradmin'
-    ports:
-      - '5430:5432'
+      SPRING_DATASOURCE_URL: jdbc:postgresql://fhirdb:5432/hapifhir
+      SPRING_DATASOURCE_USERNAME: fhiradmin
+      SPRING_DATASOURCE_PASSWORD: fhiradmin
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+
+      SPRING_FLYWAY_ENABLED: "true"
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "false"
+
+      # 🛠️ JVM-level override (beats everything)
+      JAVA_TOOL_OPTIONS: >
+        -Dspring.jpa.properties.hibernate.dialect=ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgres94Dialect
+volumes:
+  fhir_pgdata2:
