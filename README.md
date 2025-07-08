@@ -1,3 +1,11 @@
+# Run command
+
+Forked from HAPI-FHIR project to set the server up locally.
+docker-compose up
+
+Brings up the fhir server and db in docker.
+accessible via http://localhost:8086/fhir
+
 # HAPI-FHIR Starter Project
 
 This project is a complete starter project you can use to deploy a FHIR server using HAPI FHIR JPA.
